@@ -71,11 +71,18 @@ function compareKeys(
 
 checkDifferences("en.json", "pl.json");
 
+if (errors.length === 1) {
+  console.log(`There is ${errors.length} error in JSON files`);
+} else if (errors.length > 1) {
+  console.log(`There are ${errors.length} errors in JSON files`);
+} else {
+  console.log("No errors found");
+}
+
 errors.sort().forEach((error) => {
   console.log(error);
 });
 // chcę żeby się też zgadzała kolejność
-// docelowo zwracamy tylko liczbę faili i wykaz faili
 // chcę też sprawdzać, czy nie ma pustych wartości (gdy są wartości w drugim języku)
 // chcę też sprawdzać zmienne w {}
 // chcę też sprawdzać, czy escape chars są OK
