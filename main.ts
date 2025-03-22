@@ -3,10 +3,20 @@ import * as fs from "fs";
 function checkDifferences(sourceFileName: string, targetFileName: string) {
   const enJsonString = fs.readFileSync(`./${sourceFileName}`, "utf-8");
   const plJsonString = fs.readFileSync(`./${targetFileName}`, "utf-8");
-  const enJsonData = JSON.parse(enJsonString);
-  const plJsonData = JSON.parse(plJsonString);
-  compareKeys("EN", enJsonData, "PL", plJsonData);
-  compareKeys("PL", plJsonData, "EN", enJsonData);
+  try {
+    const enJsonData = JSON.parse(enJsonString);
+    const plJsonData = JSON.parse(plJsonString);
+    compareKeys("EN", enJsonData, "PL", plJsonData);
+    compareKeys("PL", plJsonData, "EN", enJsonData);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      console.log("One of JSON files is probably corrupted");
+    } else {
+      console.log("Unknown error occured");
+    }
+    let errorTyped = error as Error;
+    console.log(errorTyped.message);
+  }
 }
 
 function compareKeys(
@@ -27,8 +37,13 @@ function compareKeys(
         targetValue = targetData[targetKey];
         if (typeof sourceValue === "object" && sourceValue !== null) {
           if (typeof targetValue === "object" && targetValue !== null) {
-            console.log(sourceKey, "OK");
-            // funkcja rekurencyjna
+            // console.log(sourceKey, "OK");
+            compareKeys(
+              sourceLanguage,
+              sourceValue,
+              targetLanguage,
+              targetValue
+            );
           } else {
             console.log(
               `❌ Key ${sourceKey} is object in ${sourceLanguage} but not in ${targetLanguage}`
@@ -46,5 +61,7 @@ function compareKeys(
 
 checkDifferences("en.json", "pl.json");
 // chcę żeby się też zgadzała kolejność
-// chcę żeby się zgadzały rekurencyjnie podklucze
 // docelowo zwracamy tylko liczbę faili i wykaz faili
+// chcę też sprawdzać, czy nie ma pustych wartości (gdy są wartości w drugim języku)
+// chcę też sprawdzać zmienne w {}
+// chcę też sprawdzać, czy escape chars są OK
