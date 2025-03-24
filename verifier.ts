@@ -65,7 +65,9 @@ function compareKeys(
       }
     }
     if (comparator === false) {
-      errors.push(`❌ Key ${root}.${sourceKey} not found in ${targetLanguage.toUpperCase}`);
+      errors.push(
+        `❌ Key ${root}.${sourceKey} not found in ${targetLanguage.toUpperCase}`
+      );
     }
     comparator = false;
     if (counter === sourceCount) {
@@ -73,8 +75,6 @@ function compareKeys(
     }
   }
 }
-
-
 
 if (errors.length === 1) {
   console.log(`There is ${errors.length} error in JSON files`);
@@ -87,7 +87,3 @@ if (errors.length === 1) {
 errors.sort().forEach((error) => {
   console.log(error);
 });
-// chcę żeby się też zgadzała kolejność
-// chcę też sprawdzać, czy nie ma pustych wartości (gdy są wartości w drugim języku)
-// chcę też sprawdzać zmienne w {}
-// chcę też sprawdzać, czy escape chars są OK
