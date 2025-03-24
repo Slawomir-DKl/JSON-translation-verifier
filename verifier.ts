@@ -7,7 +7,19 @@ let errors: string[] = [];
 
 checkDifferences(srcLng, targetLng);
 
-function checkDifferences(srcLng: string, targetLng: string) {
+if (errors.length === 1) {
+  console.log(`There is ${errors.length} error in JSON files`);
+} else if (errors.length > 1) {
+  console.log(`There are ${errors.length} errors in JSON files`);
+} else {
+  console.log("No errors found");
+}
+
+errors.sort().forEach((error) => {
+  console.log(error);
+});
+
+function checkDifferences(srcLng: string, targetLng: string): void {
   const srcJsonString: string = fs.readFileSync(`./${srcLng}.json`, "utf-8");
   const targetJsonString: string = fs.readFileSync(
     `./${targetLng}.json`,
@@ -27,6 +39,10 @@ function checkDifferences(srcLng: string, targetLng: string) {
     let errorTyped = error as Error;
     console.log(errorTyped.message);
   }
+
+  const srcLines = srcJsonString.split("\n");
+  const targetLines = targetJsonString.split("\n");
+  checkOrder(srcLines, targetLines);
 }
 
 function compareKeys(
@@ -35,7 +51,7 @@ function compareKeys(
   targetLng: string,
   targetData: Object,
   root: string
-) {
+): void {
   let comparator = false;
   let srcValue: any;
   let targetValue: any;
@@ -55,7 +71,7 @@ function compareKeys(
             compareKeys(srcLng, srcValue, targetLng, targetValue, root);
           } else {
             errors.push(
-              `❌ Key ${root}.${srcKey} is object in ${srcLng.toUpperCase} but not in ${targetLng.toUpperCase}`
+              `❌ Object alert: key ${root}.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
             );
           }
         }
@@ -63,7 +79,7 @@ function compareKeys(
     }
     if (comparator === false) {
       errors.push(
-        `❌ Key ${root}.${srcKey} not found in ${targetLng.toUpperCase}`
+        `❗ Key alert: key ${root}.${srcKey} not found in ${targetLng.toUpperCase()}`
       );
     }
     comparator = false;
@@ -73,14 +89,24 @@ function compareKeys(
   }
 }
 
-if (errors.length === 1) {
-  console.log(`There is ${errors.length} error in JSON files`);
-} else if (errors.length > 1) {
-  console.log(`There are ${errors.length} errors in JSON files`);
-} else {
-  console.log("No errors found");
+function checkOrder(srcLines: string[], targetLines: string[]): void {
+  for (let lineCnt = 0; lineCnt < srcLines.length; lineCnt++) {
+    const srcLine: string = srcLines[lineCnt];
+    if (srcLine.indexOf('"') > -1) {
+      const targetLine: string = targetLines[lineCnt];
+      const srcKey: string = srcLine.trim().split('"')[1];
+      const targetKey: string = targetLine.trim().split('"')[1];
+      if (srcKey != targetKey) {
+        const maxLineCntLength: number = Math.floor(
+          Math.log10(srcLines.length) + 1
+        );
+        const lineNumber: string = (lineCnt + 1)
+          .toString()
+          .padStart(maxLineCntLength, "0");
+        errors.push(
+          `⭕ Order alert: keys in line ${lineNumber} - source: ${srcKey}, target: ${targetKey}`
+        );
+      }
+    }
+  }
 }
-
-errors.sort().forEach((error) => {
-  console.log(error);
-});
