@@ -8,13 +8,13 @@ let errors: string[] = [];
 checkDifferences(sourceLanguage, targetLanguage);
 
 function checkDifferences(sourceLanguage: string, targetLanguage: string) {
-  const enJsonString = fs.readFileSync(`./${sourceLanguage}.json`, "utf-8");
-  const plJsonString = fs.readFileSync(`./${targetLanguage}.json`, "utf-8");
+  const sourceJsonString = fs.readFileSync(`./${sourceLanguage}.json`, "utf-8");
+  const targetJsonString = fs.readFileSync(`./${targetLanguage}.json`, "utf-8");
   try {
-    const enJsonData = JSON.parse(enJsonString);
-    const plJsonData = JSON.parse(plJsonString);
-    compareKeys(sourceLanguage, enJsonData, targetLanguage, plJsonData, "");
-    compareKeys(targetLanguage, plJsonData, sourceLanguage, enJsonData, "");
+    const sourceJsonData = JSON.parse(sourceJsonString);
+    const targetJsonData = JSON.parse(targetJsonString);
+    compareKeys(sourceLanguage, sourceJsonData, targetLanguage, targetJsonData, "");
+    compareKeys(targetLanguage, targetJsonData, sourceLanguage, sourceJsonData, "");
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.log("One of JSON files is probably corrupted");
@@ -75,6 +75,9 @@ function compareKeys(
     }
   }
 }
+
+
+
 
 if (errors.length === 1) {
   console.log(`There is ${errors.length} error in JSON files`);
