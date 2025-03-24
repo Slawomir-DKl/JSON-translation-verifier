@@ -1,0 +1,11 @@
+{
+  "SECTION_1": {
+    "FEATURE_1": "Tłumaczenie tekstu dla funkcji 1",
+    "FEATURE_2": "Tłumaczenie tekstu dla funkcji 2",
+    "FEATURE_3": "Tłumaczenie tekstu dla funkcji 3"
+  },
+  "SECTION_2": {
+    "FEATURE_4": "Tłumaczenie tekstu dla funkcji 4",
+    "FEATURE_5": "Tłumaczenie tekstu dla funkcji 5"
+  }
+}

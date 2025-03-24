@@ -1,0 +1,11 @@
+{
+  "SECTION_1": {
+    "FEATURE_1": "Original text for feature 1",
+    "FEATURE_2": "Original text for feature 2",
+    "FEATURE_3": "Original text for feature 3"
+  },
+  "SECTION_2": {
+    "FEATURE_4": "Original text for feature 4",
+    "FEATURE_5": "Original text for feature 5"
+  }
+}
