@@ -1,6 +1,11 @@
 import * as fs from "fs";
 
+const sourceFile = "en.json";
+const targetFile = "pl.json";
+
 let errors: string[] = [];
+
+checkDifferences(sourceFile, targetFile);
 
 function checkDifferences(sourceFileName: string, targetFileName: string) {
   const enJsonString = fs.readFileSync(`./${sourceFileName}`, "utf-8");
@@ -69,7 +74,7 @@ function compareKeys(
   }
 }
 
-checkDifferences("en.json", "pl.json");
+
 
 if (errors.length === 1) {
   console.log(`There is ${errors.length} error in JSON files`);
