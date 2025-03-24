@@ -4,7 +4,7 @@
 
 ## How to use the script
 
-1. Configure file names (constants `sourceFile` and `targetFile` at the beginning of the `verifier.ts`)
+1. Configure file names (enter source and target language codes at the beginning of the `verifier.ts`). The source JSON file has to have the name `sourceLanguage.json`.
 
 2. Run the script, e.g. `npx ts-node verifier.ts`
 

@@ -1,20 +1,20 @@
 import * as fs from "fs";
 
-const sourceFile = "en.json";
-const targetFile = "pl.json";
+const sourceLanguage = "EN";
+const targetLanguage = "PL";
 
 let errors: string[] = [];
 
-checkDifferences(sourceFile, targetFile);
+checkDifferences(sourceLanguage, targetLanguage);
 
-function checkDifferences(sourceFileName: string, targetFileName: string) {
-  const enJsonString = fs.readFileSync(`./${sourceFileName}`, "utf-8");
-  const plJsonString = fs.readFileSync(`./${targetFileName}`, "utf-8");
+function checkDifferences(sourceLanguage: string, targetLanguage: string) {
+  const enJsonString = fs.readFileSync(`./${sourceLanguage}.json`, "utf-8");
+  const plJsonString = fs.readFileSync(`./${targetLanguage}.json`, "utf-8");
   try {
     const enJsonData = JSON.parse(enJsonString);
     const plJsonData = JSON.parse(plJsonString);
-    compareKeys("EN", enJsonData, "PL", plJsonData, "");
-    compareKeys("PL", plJsonData, "EN", enJsonData, "");
+    compareKeys(sourceLanguage, enJsonData, targetLanguage, plJsonData, "");
+    compareKeys(targetLanguage, plJsonData, sourceLanguage, enJsonData, "");
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.log("One of JSON files is probably corrupted");
@@ -58,14 +58,14 @@ function compareKeys(
             );
           } else {
             errors.push(
-              `❌ Key ${root}.${sourceKey} is object in ${sourceLanguage} but not in ${targetLanguage}`
+              `❌ Key ${root}.${sourceKey} is object in ${sourceLanguage.toUpperCase} but not in ${targetLanguage.toUpperCase}`
             );
           }
         }
       }
     }
     if (comparator === false) {
-      errors.push(`❌ Key ${root}.${sourceKey} not found in ${targetLanguage}`);
+      errors.push(`❌ Key ${root}.${sourceKey} not found in ${targetLanguage.toUpperCase}`);
     }
     comparator = false;
     if (counter === sourceCount) {
