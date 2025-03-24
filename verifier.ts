@@ -1,20 +1,23 @@
 import * as fs from "fs";
 
-const sourceLanguage = "EN";
-const targetLanguage = "PL";
+const srcLng = "EN";
+const targetLng = "PL";
 
 let errors: string[] = [];
 
-checkDifferences(sourceLanguage, targetLanguage);
+checkDifferences(srcLng, targetLng);
 
-function checkDifferences(sourceLanguage: string, targetLanguage: string) {
-  const sourceJsonString = fs.readFileSync(`./${sourceLanguage}.json`, "utf-8");
-  const targetJsonString = fs.readFileSync(`./${targetLanguage}.json`, "utf-8");
+function checkDifferences(srcLng: string, targetLng: string) {
+  const srcJsonString: string = fs.readFileSync(`./${srcLng}.json`, "utf-8");
+  const targetJsonString: string = fs.readFileSync(
+    `./${targetLng}.json`,
+    "utf-8"
+  );
   try {
-    const sourceJsonData = JSON.parse(sourceJsonString);
+    const srcJsonData = JSON.parse(srcJsonString);
     const targetJsonData = JSON.parse(targetJsonString);
-    compareKeys(sourceLanguage, sourceJsonData, targetLanguage, targetJsonData, "");
-    compareKeys(targetLanguage, targetJsonData, sourceLanguage, sourceJsonData, "");
+    compareKeys(srcLng, srcJsonData, targetLng, targetJsonData, "");
+    compareKeys(targetLng, targetJsonData, srcLng, srcJsonData, "");
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.log("One of JSON files is probably corrupted");
@@ -27,38 +30,32 @@ function checkDifferences(sourceLanguage: string, targetLanguage: string) {
 }
 
 function compareKeys(
-  sourceLanguage: string,
-  sourceData: Object,
-  targetLanguage: string,
+  srcLng: string,
+  srcData: Object,
+  targetLng: string,
   targetData: Object,
   root: string
 ) {
   let comparator = false;
-  let sourceValue: any;
+  let srcValue: any;
   let targetValue: any;
   let counter = 0;
-  const sourceCount = Object.keys(sourceData).length;
+  const srcCount = Object.keys(srcData).length;
 
-  for (const sourceKey in sourceData) {
+  for (const srcKey in srcData) {
     counter++;
     for (const targetKey in targetData) {
-      if (sourceKey === targetKey) {
+      if (srcKey === targetKey) {
         comparator = true;
-        sourceValue = sourceData[sourceKey];
+        srcValue = srcData[srcKey];
         targetValue = targetData[targetKey];
-        if (typeof sourceValue === "object" && sourceValue !== null) {
+        if (typeof srcValue === "object" && srcValue !== null) {
           if (typeof targetValue === "object" && targetValue !== null) {
-            root = root === "" ? sourceKey : `${root}.${sourceKey}`;
-            compareKeys(
-              sourceLanguage,
-              sourceValue,
-              targetLanguage,
-              targetValue,
-              root
-            );
+            root = root === "" ? srcKey : `${root}.${srcKey}`;
+            compareKeys(srcLng, srcValue, targetLng, targetValue, root);
           } else {
             errors.push(
-              `❌ Key ${root}.${sourceKey} is object in ${sourceLanguage.toUpperCase} but not in ${targetLanguage.toUpperCase}`
+              `❌ Key ${root}.${srcKey} is object in ${srcLng.toUpperCase} but not in ${targetLng.toUpperCase}`
             );
           }
         }
@@ -66,18 +63,15 @@ function compareKeys(
     }
     if (comparator === false) {
       errors.push(
-        `❌ Key ${root}.${sourceKey} not found in ${targetLanguage.toUpperCase}`
+        `❌ Key ${root}.${srcKey} not found in ${targetLng.toUpperCase}`
       );
     }
     comparator = false;
-    if (counter === sourceCount) {
+    if (counter === srcCount) {
       root = root.substring(0, root.lastIndexOf("."));
     }
   }
 }
-
-
-
 
 if (errors.length === 1) {
   console.log(`There is ${errors.length} error in JSON files`);
