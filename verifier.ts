@@ -2,6 +2,7 @@ import * as fs from "fs";
 
 const srcLng = "EN";
 const targetLng = "PL";
+const lengthPercentDifference = 50;
 
 let errors: string[] = [];
 
@@ -84,6 +85,14 @@ function compareKeys(
               `❌ Object alert: key ${root}.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
             );
           }
+        } else if (
+          typeof srcValue === "string" &&
+          typeof targetValue === "string" &&
+          srcValue.length < (targetValue.length * lengthPercentDifference) / 100
+        ) {
+          errors.push(
+            `📏 Length alert: value of key ${root}.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
+          );
         }
       }
       if (errors.length > 50) {
