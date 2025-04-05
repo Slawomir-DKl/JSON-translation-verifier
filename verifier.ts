@@ -8,37 +8,32 @@ interface ComparePayload {
   root: string;
 }
 
+const folder = "files_to_check";
 const srcLng = "EN";
 const targetLng = "PL";
 const lengthPercentDifference = 70;
-const maxErrorCount = 100;
+const maxErrorCount = 50;
 
 let errors: string[] = [];
+let srcJsonData: any;
+let targetJsonData: any;
 
 checkDifferences(srcLng, targetLng);
 printResults();
 
 function checkDifferences(srcLng: string, targetLng: string): void {
   let comparePayload: ComparePayload;
-  const srcJsonString: string = fs.readFileSync(`./${srcLng}.json`, "utf-8");
+  const srcJsonString: string = fs.readFileSync(
+    `./${folder}/${srcLng}.json`,
+    "utf-8"
+  );
   const targetJsonString: string = fs.readFileSync(
-    `./${targetLng}.json`,
+    `./${folder}/${targetLng}.json`,
     "utf-8"
   );
   try {
-    const srcJsonData = JSON.parse(srcJsonString);
-    const targetJsonData = JSON.parse(targetJsonString);
-    comparePayload = {
-      srcLng: srcLng,
-      srcData: srcJsonData,
-      targetLng: targetLng,
-      targetData: targetJsonData,
-      root: "",
-    };
-
-    compareKeys(comparePayload);
-    comparePayload = revertPayload(comparePayload);
-    compareKeys(comparePayload);
+    srcJsonData = JSON.parse(srcJsonString);
+    targetJsonData = JSON.parse(targetJsonString);
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.log("One of JSON files is probably corrupted");
@@ -48,6 +43,17 @@ function checkDifferences(srcLng: string, targetLng: string): void {
     let errorTyped = error as Error;
     console.log(errorTyped.message);
   }
+
+  comparePayload = {
+    srcLng: srcLng,
+    srcData: srcJsonData,
+    targetLng: targetLng,
+    targetData: targetJsonData,
+    root: "",
+  };
+
+  compareKeys(comparePayload);
+  compareKeys(revertPayload(comparePayload)); // wydaje się, że nie działa
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
@@ -69,59 +75,53 @@ function compareKeys(comparePayload: ComparePayload): string[] {
   let srcValue: any;
   let targetValue: any;
   let counter = 0;
-  let targetFound = false;
   const srcCount = Object.keys(comparePayload.srcData).length;
 
   for (const srcKey in comparePayload.srcData) {
     counter++;
-    for (const targetKey in comparePayload.targetData) {
-      if (!targetFound) {
-        if (srcKey === targetKey) {
-          targetFound = true;
-          comparator = true;
-          srcValue = comparePayload.srcData[srcKey];
-          targetValue = comparePayload.targetData[targetKey];
-          if (typeof srcValue === "object" && srcValue !== null) {
-            if (typeof targetValue === "object" && targetValue !== null) {
-              comparePayload.root =
-                comparePayload.root === ""
-                  ? srcKey
-                  : `${comparePayload.root}.${srcKey}`;
-              const subComparePayload: ComparePayload = {
-                srcLng: srcLng,
-                srcData: srcValue,
-                targetLng: targetLng,
-                targetData: targetValue,
-                root: comparePayload.root,
-              };
-              compareKeys(subComparePayload); // ja tu kurcze czyszczę errory
-            } else {
-              errors.push(
-                `❌ Object alert: key ${
-                  comparePayload.root
-                }.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
-              );
-            }
-          } else if (
-            typeof srcValue === "string" &&
-            typeof targetValue === "string" &&
-            srcValue.length <
-              (targetValue.length * lengthPercentDifference) / 100
-          ) {
+    for (const targetKey in comparePayload.targetData) { // co powoduje, że nawet jak znajdę targetKey, to lecę dalej - trudno debugować, bo długo to trwa
+      // może najpierw wyszukać, czy taki targetKey jest w targetData?
+      if (srcKey === targetKey) {
+        comparator = true;
+        srcValue = comparePayload.srcData[srcKey];
+        targetValue = comparePayload.targetData[targetKey];
+        if (typeof srcValue === "object" && srcValue !== null) {
+          if (typeof targetValue === "object" && targetValue !== null) {
+            comparePayload.root =
+              comparePayload.root === ""
+                ? srcKey
+                : `${comparePayload.root}.${srcKey}`;
+            const subComparePayload: ComparePayload = {
+              srcLng: srcLng,
+              srcData: srcValue,
+              targetLng: targetLng,
+              targetData: targetValue,
+              root: comparePayload.root,
+            };
+            compareKeys(subComparePayload);
+          } else {
             errors.push(
-              `📏 Length alert: value of key ${
+              `❌ Object alert: key ${
                 comparePayload.root
-              }.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
+              }.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
             );
           }
+        } else if (
+          typeof srcValue === "string" &&
+          typeof targetValue === "string" &&
+          srcValue.length < (targetValue.length * lengthPercentDifference) / 100
+        ) {
+          errors.push(
+            `📏 Length alert: value of key ${
+              comparePayload.root
+            }.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
+          );
         }
-        if (errors.length > maxErrorCount) {
-          return errors;
-        }
-        break;
+      }
+      if (errors.length > maxErrorCount) {
+        return errors;
       }
     }
-    targetFound = false;
     if (comparator === false) {
       errors.push(
         `❗ Key alert: key ${
