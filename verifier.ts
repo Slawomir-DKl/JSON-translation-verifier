@@ -1,30 +1,25 @@
 import * as fs from "fs";
 
+interface ComparePayload {
+  srcLng: string;
+  srcData: Object;
+  targetLng: string;
+  targetData: Object;
+  root: string;
+}
+
 const srcLng = "EN";
 const targetLng = "PL";
-const lengthPercentDifference = 50;
+const lengthPercentDifference = 70;
+const maxErrorCount = 100;
 
 let errors: string[] = [];
 
 checkDifferences(srcLng, targetLng);
-
-if (errors.length === 1) {
-  console.log(`There is ${errors.length} error in JSON files`);
-} else if (errors.length > 50) {
-  console.log(
-    `There is more than 50 errors in JSON files. Correct them and run the program again.`
-  );
-} else if (errors.length > 1) {
-  console.log(`There are ${errors.length} errors in JSON files`);
-} else {
-  console.log("No errors found");
-}
-
-errors.sort().forEach((error) => {
-  console.log(error);
-});
+printResults();
 
 function checkDifferences(srcLng: string, targetLng: string): void {
+  let comparePayload: ComparePayload;
   const srcJsonString: string = fs.readFileSync(`./${srcLng}.json`, "utf-8");
   const targetJsonString: string = fs.readFileSync(
     `./${targetLng}.json`,
@@ -33,8 +28,17 @@ function checkDifferences(srcLng: string, targetLng: string): void {
   try {
     const srcJsonData = JSON.parse(srcJsonString);
     const targetJsonData = JSON.parse(targetJsonString);
-    errors = compareKeys(srcLng, srcJsonData, targetLng, targetJsonData, "");
-    errors = compareKeys(targetLng, targetJsonData, srcLng, srcJsonData, "");
+    comparePayload = {
+      srcLng: srcLng,
+      srcData: srcJsonData,
+      targetLng: targetLng,
+      targetData: targetJsonData,
+      root: "",
+    };
+
+    compareKeys(comparePayload);
+    comparePayload = revertPayload(comparePayload);
+    compareKeys(comparePayload);
   } catch (error) {
     if (error instanceof SyntaxError) {
       console.log("One of JSON files is probably corrupted");
@@ -47,68 +51,92 @@ function checkDifferences(srcLng: string, targetLng: string): void {
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
-  errors = checkOrder(srcLines, targetLines);
+  checkOrder(srcLines, targetLines);
 }
 
-function compareKeys(
-  srcLng: string,
-  srcData: Object,
-  targetLng: string,
-  targetData: Object,
-  root: string
-): string[] {
+function revertPayload(comparePayload: ComparePayload): ComparePayload {
+  const newTargetLng = comparePayload.srcLng;
+  const newTargetData = comparePayload.srcData;
+  comparePayload.srcLng = comparePayload.targetLng;
+  comparePayload.srcData = comparePayload.targetData;
+  comparePayload.targetLng = newTargetLng;
+  comparePayload.targetData = newTargetData;
+  return comparePayload;
+}
+
+function compareKeys(comparePayload: ComparePayload): string[] {
   let comparator = false;
   let srcValue: any;
   let targetValue: any;
   let counter = 0;
-  const srcCount = Object.keys(srcData).length;
+  let targetFound = false;
+  const srcCount = Object.keys(comparePayload.srcData).length;
 
-  for (const srcKey in srcData) {
+  for (const srcKey in comparePayload.srcData) {
     counter++;
-    for (const targetKey in targetData) {
-      if (srcKey === targetKey) {
-        comparator = true;
-        srcValue = srcData[srcKey];
-        targetValue = targetData[targetKey];
-        if (typeof srcValue === "object" && srcValue !== null) {
-          if (typeof targetValue === "object" && targetValue !== null) {
-            root = root === "" ? srcKey : `${root}.${srcKey}`;
-            errors = compareKeys(
-              srcLng,
-              srcValue,
-              targetLng,
-              targetValue,
-              root
-            );
-          } else {
+    for (const targetKey in comparePayload.targetData) {
+      if (!targetFound) {
+        if (srcKey === targetKey) {
+          targetFound = true;
+          comparator = true;
+          srcValue = comparePayload.srcData[srcKey];
+          targetValue = comparePayload.targetData[targetKey];
+          if (typeof srcValue === "object" && srcValue !== null) {
+            if (typeof targetValue === "object" && targetValue !== null) {
+              comparePayload.root =
+                comparePayload.root === ""
+                  ? srcKey
+                  : `${comparePayload.root}.${srcKey}`;
+              const subComparePayload: ComparePayload = {
+                srcLng: srcLng,
+                srcData: srcValue,
+                targetLng: targetLng,
+                targetData: targetValue,
+                root: comparePayload.root,
+              };
+              compareKeys(subComparePayload); // ja tu kurcze czyszczę errory
+            } else {
+              errors.push(
+                `❌ Object alert: key ${
+                  comparePayload.root
+                }.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
+              );
+            }
+          } else if (
+            typeof srcValue === "string" &&
+            typeof targetValue === "string" &&
+            srcValue.length <
+              (targetValue.length * lengthPercentDifference) / 100
+          ) {
             errors.push(
-              `❌ Object alert: key ${root}.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
+              `📏 Length alert: value of key ${
+                comparePayload.root
+              }.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
             );
           }
-        } else if (
-          typeof srcValue === "string" &&
-          typeof targetValue === "string" &&
-          srcValue.length < (targetValue.length * lengthPercentDifference) / 100
-        ) {
-          errors.push(
-            `📏 Length alert: value of key ${root}.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
-          );
         }
-      }
-      if (errors.length > 50) {
-        return errors;
+        if (errors.length > maxErrorCount) {
+          return errors;
+        }
+        break;
       }
     }
+    targetFound = false;
     if (comparator === false) {
       errors.push(
-        `❗ Key alert: key ${root}.${srcKey} not found in ${targetLng.toUpperCase()}`
+        `❗ Key alert: key ${
+          comparePayload.root
+        }.${srcKey} not found in ${targetLng.toUpperCase()}`
       );
     }
     comparator = false;
     if (counter === srcCount) {
-      root = root.substring(0, root.lastIndexOf("."));
+      comparePayload.root = comparePayload.root.substring(
+        0,
+        comparePayload.root.lastIndexOf(".")
+      );
     }
-    if (errors.length > 50) {
+    if (errors.length > maxErrorCount) {
       return errors;
     }
   }
@@ -132,11 +160,33 @@ function checkOrder(srcLines: string[], targetLines: string[]): string[] {
         errors.push(
           `⭕ Order alert: keys in line ${lineNumber} - source: ${srcKey}, target: ${targetKey}`
         );
-        if (errors.length > 50) {
+        if (errors.length > maxErrorCount) {
           return errors;
         }
       }
     }
   }
   return errors;
+}
+
+function printResults() {
+  if (errors.length === 1) {
+    console.log(`There is ${errors.length} error in JSON files`);
+  } else if (errors.length > maxErrorCount) {
+    console.log(
+      `There is more than ${maxErrorCount} errors in JSON files. Correct them and run the program again.`
+    );
+  } else if (errors.length > 1) {
+    console.log(`There are ${errors.length} errors in JSON files`);
+  } else {
+    console.log("No errors found");
+  }
+
+  errors.sort();
+  const maxErrors =
+    errors.length > maxErrorCount ? maxErrorCount : errors.length;
+
+  for (let index = 0; index < maxErrors; index++) {
+    console.log(errors[index]);
+  }
 }
