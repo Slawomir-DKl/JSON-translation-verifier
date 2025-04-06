@@ -8,15 +8,16 @@ interface ComparePayload {
   root: string;
 }
 
+let errors: string[] = [];
+let srcJsonData: any;
+let targetJsonData: any;
+
+// CONFIGURATION
 const folder = "files_to_check";
 const srcLng = "EN";
 const targetLng = "PL";
 const lengthPercentDifference = 0.5;
 const maxErrorCount = 50;
-
-let errors: string[] = [];
-let srcJsonData: any;
-let targetJsonData: any;
 
 checkDifferences(srcLng, targetLng);
 printResults();
@@ -53,36 +54,27 @@ function checkDifferences(srcLng: string, targetLng: string): void {
   };
 
   compareKeys(comparePayload);
-  const x = revertPayload(comparePayload);
-  compareKeys(x); // wydaje się, że nie działa
+  compareKeys(revertPayload(comparePayload));
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
   checkOrder(srcLines, targetLines);
 }
 
-function revertPayload(comparePayload: ComparePayload): ComparePayload {
-  // const newTargetLng = comparePayload.srcLng;
-  // const newTargetData = comparePayload.srcData;
-  // comparePayload.srcLng = comparePayload.targetLng;
-  // comparePayload.srcData = comparePayload.targetData;
-  // comparePayload.targetLng = newTargetLng;
-  // comparePayload.targetData = newTargetData;
+function revertPayload(internalPayload: ComparePayload): ComparePayload {
   return {
-    srcLng: comparePayload.targetLng,
-    srcData: comparePayload.targetData,
-    targetLng: comparePayload.srcLng,
-    targetData: comparePayload.srcData,
-    root: comparePayload.root,
+    srcLng: internalPayload.targetLng,
+    srcData: internalPayload.targetData,
+    targetLng: internalPayload.srcLng,
+    targetData: internalPayload.srcData,
+    root: internalPayload.root,
   };
 }
 
 function compareKeys(internalPayload: ComparePayload): string[] {
-  // let comparator = false;
   let srcValue: any;
   let targetValue: any;
   let counter = 0;
-  // const srcCount = Object.keys(comparePayload.srcData).length;
 
   for (const srcKey in internalPayload.srcData) {
     counter++;
@@ -91,14 +83,18 @@ function compareKeys(internalPayload: ComparePayload): string[] {
       targetValue = internalPayload.targetData[srcKey];
       if (typeof srcValue === "object" && srcValue !== null) {
         if (typeof targetValue === "object" && targetValue !== null) {
-          const subPayload: ComparePayload = {
+          const root =
+            internalPayload.root === ""
+              ? srcKey
+              : `${internalPayload.root}.${srcKey}`;
+          const subKeyPayload: ComparePayload = {
             srcLng: internalPayload.srcLng,
             srcData: srcValue,
             targetLng: internalPayload.targetLng,
             targetData: targetValue,
-            root: internalPayload.root,
+            root: root,
           };
-          compareKeys(subPayload);
+          compareKeys(subKeyPayload);
         } else {
           errors.push(
             `❌ Object alert: key ${
@@ -125,67 +121,6 @@ function compareKeys(internalPayload: ComparePayload): string[] {
         }.${srcKey} not found in ${internalPayload.targetLng.toUpperCase()}`
       );
     }
-    // for (const targetKey in comparePayload.targetData) {
-    //   // co powoduje, że nawet jak znajdę targetKey, to lecę dalej - trudno debugować, bo długo to trwa
-    //   // może najpierw wyszukać, czy taki targetKey jest w targetData?
-    //   if (srcKey === targetKey) {
-    //     comparator = true;
-    //     srcValue = comparePayload.srcData[srcKey];
-    //     targetValue = comparePayload.targetData[targetKey];
-    //     if (typeof srcValue === "object" && srcValue !== null) {
-    //       if (typeof targetValue === "object" && targetValue !== null) {
-    //         comparePayload.root =
-    //           comparePayload.root === ""
-    //             ? srcKey
-    //             : `${comparePayload.root}.${srcKey}`;
-    //         const subComparePayload: ComparePayload = {
-    //           srcLng: srcLng,
-    //           srcData: srcValue,
-    //           targetLng: targetLng,
-    //           targetData: targetValue,
-    //           root: comparePayload.root,
-    //         };
-    //         compareKeys(subComparePayload);
-    //       } else {
-    //         errors.push(
-    //           `❌ Object alert: key ${
-    //             comparePayload.root
-    //           }.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
-    //         );
-    //       }
-    //     } else if (
-    //       typeof srcValue === "string" &&
-    //       typeof targetValue === "string" &&
-    //       srcValue.length < (targetValue.length * lengthPercentDifference) / 100
-    //     ) {
-    //       errors.push(
-    //         `📏 Length alert: value of key ${
-    //           comparePayload.root
-    //         }.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
-    //       );
-    //     }
-    //   }
-    //   if (errors.length > maxErrorCount) {
-    //     return errors;
-    //   }
-    // }
-    // if (comparator === false) {
-    //   errors.push(
-    //     `❗ Key alert: key ${
-    //       comparePayload.root
-    //     }.${srcKey} not found in ${targetLng.toUpperCase()}`
-    //   );
-    // }
-    // comparator = false;
-    // if (counter === srcCount) {
-    //   comparePayload.root = comparePayload.root.substring(
-    //     0,
-    //     comparePayload.root.lastIndexOf(".")
-    //   );
-    // }
-    // if (errors.length > maxErrorCount) {
-    //   return errors;
-    // }
   }
   return errors;
 }
@@ -207,9 +142,6 @@ function checkOrder(srcLines: string[], targetLines: string[]): string[] {
         errors.push(
           `⭕ Order alert: keys in line ${lineNumber} - source: ${srcKey}, target: ${targetKey}`
         );
-        if (errors.length > maxErrorCount) {
-          return errors;
-        }
       }
     }
   }
