@@ -1,5 +1,7 @@
+import { extractVariables } from "../helpers/check_variables.helper";
+
 export function checkVariables( // może podajmy tylko srcValue i targetValue, on mi zwraca errory w [] i dodaję te errory do tamtych - uprościć parametry funkcji
-    // dodaj tutaj root
+  // dodaj tutaj root
   srcKey: string,
   srcLng: string,
   srcValue: string,
@@ -14,21 +16,4 @@ export function checkVariables( // może podajmy tylko srcValue i targetValue, o
       );
     }
   });
-}
-
-function extractVariables(inputString: string): string[] {
-  const regex = /{{(.*?)}}/g;
-  let matches: string[];
-  try {
-    matches = inputString.match(regex);
-  } catch (error) {
-    console.log(inputString);
-    console.log(error.message);
-  }
-
-  if (!matches) {
-    return [];
-  }
-
-  return matches;
 }
