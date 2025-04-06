@@ -2,6 +2,7 @@ import { ComparePayload, Config } from "../interfaces/interfaces";
 import * as fs from "fs";
 import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
+import { checkVariables } from "./check_variables";
 
 export function checkDifferences(config: Config, errors: string[]): void {
   let srcJsonData: any;
@@ -39,12 +40,8 @@ export function checkDifferences(config: Config, errors: string[]): void {
     root: "",
   };
 
-  compareKeys(comparePayload, config.lengthPercentDifference, errors);
-  compareKeys(
-    revertPayload(comparePayload),
-    config.lengthPercentDifference,
-    errors
-  );
+  compareKeys(comparePayload, config, errors);
+  compareKeys(revertPayload(comparePayload), config, errors);
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
@@ -53,7 +50,7 @@ export function checkDifferences(config: Config, errors: string[]): void {
 
 function compareKeys(
   internalPayload: ComparePayload,
-  lengthPercentDifference: number,
+  config: Config,
   errors: string[]
 ): string[] {
   let srcValue: any;
@@ -78,7 +75,7 @@ function compareKeys(
             targetData: targetValue,
             root: root,
           };
-          compareKeys(subKeyPayload, lengthPercentDifference, errors);
+          compareKeys(subKeyPayload, config, errors);
         } else {
           errors.push(
             `❌ Object alert: key ${
@@ -87,16 +84,19 @@ function compareKeys(
           );
         }
       }
-      if (
-        typeof srcValue === "string" &&
-        typeof targetValue === "string" &&
-        srcValue.length < targetValue.length * lengthPercentDifference
-      ) {
-        errors.push(
-          `📏 Length alert: value of key ${
-            internalPayload.root
-          }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
-        );
+
+      if (typeof srcValue === "string" && typeof targetValue === "string") {
+        checkVariables(srcKey, config.srcLng, srcValue, targetValue, errors);
+        if (
+          srcValue.length <
+          targetValue.length * config.lengthPercentDifference
+        ) {
+          errors.push(
+            `📏 Length alert: value of key ${
+              internalPayload.root
+            }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
+          );
+        }
       }
     } else {
       errors.push(
