@@ -11,7 +11,7 @@ interface ComparePayload {
 const folder = "files_to_check";
 const srcLng = "EN";
 const targetLng = "PL";
-const lengthPercentDifference = 70;
+const lengthPercentDifference = 0.5;
 const maxErrorCount = 50;
 
 let errors: string[] = [];
@@ -53,7 +53,8 @@ function checkDifferences(srcLng: string, targetLng: string): void {
   };
 
   compareKeys(comparePayload);
-  compareKeys(revertPayload(comparePayload)); // wydaje się, że nie działa
+  const x = revertPayload(comparePayload);
+  compareKeys(x); // wydaje się, że nie działa
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
@@ -61,84 +62,130 @@ function checkDifferences(srcLng: string, targetLng: string): void {
 }
 
 function revertPayload(comparePayload: ComparePayload): ComparePayload {
-  const newTargetLng = comparePayload.srcLng;
-  const newTargetData = comparePayload.srcData;
-  comparePayload.srcLng = comparePayload.targetLng;
-  comparePayload.srcData = comparePayload.targetData;
-  comparePayload.targetLng = newTargetLng;
-  comparePayload.targetData = newTargetData;
-  return comparePayload;
+  // const newTargetLng = comparePayload.srcLng;
+  // const newTargetData = comparePayload.srcData;
+  // comparePayload.srcLng = comparePayload.targetLng;
+  // comparePayload.srcData = comparePayload.targetData;
+  // comparePayload.targetLng = newTargetLng;
+  // comparePayload.targetData = newTargetData;
+  return {
+    srcLng: comparePayload.targetLng,
+    srcData: comparePayload.targetData,
+    targetLng: comparePayload.srcLng,
+    targetData: comparePayload.srcData,
+    root: comparePayload.root,
+  };
 }
 
-function compareKeys(comparePayload: ComparePayload): string[] {
-  let comparator = false;
+function compareKeys(internalPayload: ComparePayload): string[] {
+  // let comparator = false;
   let srcValue: any;
   let targetValue: any;
   let counter = 0;
-  const srcCount = Object.keys(comparePayload.srcData).length;
+  // const srcCount = Object.keys(comparePayload.srcData).length;
 
-  for (const srcKey in comparePayload.srcData) {
+  for (const srcKey in internalPayload.srcData) {
     counter++;
-    for (const targetKey in comparePayload.targetData) { // co powoduje, że nawet jak znajdę targetKey, to lecę dalej - trudno debugować, bo długo to trwa
-      // może najpierw wyszukać, czy taki targetKey jest w targetData?
-      if (srcKey === targetKey) {
-        comparator = true;
-        srcValue = comparePayload.srcData[srcKey];
-        targetValue = comparePayload.targetData[targetKey];
-        if (typeof srcValue === "object" && srcValue !== null) {
-          if (typeof targetValue === "object" && targetValue !== null) {
-            comparePayload.root =
-              comparePayload.root === ""
-                ? srcKey
-                : `${comparePayload.root}.${srcKey}`;
-            const subComparePayload: ComparePayload = {
-              srcLng: srcLng,
-              srcData: srcValue,
-              targetLng: targetLng,
-              targetData: targetValue,
-              root: comparePayload.root,
-            };
-            compareKeys(subComparePayload);
-          } else {
-            errors.push(
-              `❌ Object alert: key ${
-                comparePayload.root
-              }.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
-            );
-          }
-        } else if (
-          typeof srcValue === "string" &&
-          typeof targetValue === "string" &&
-          srcValue.length < (targetValue.length * lengthPercentDifference) / 100
-        ) {
+    if (srcKey in internalPayload.targetData) {
+      srcValue = internalPayload.srcData[srcKey];
+      targetValue = internalPayload.targetData[srcKey];
+      if (typeof srcValue === "object" && srcValue !== null) {
+        if (typeof targetValue === "object" && targetValue !== null) {
+          const subPayload: ComparePayload = {
+            srcLng: internalPayload.srcLng,
+            srcData: srcValue,
+            targetLng: internalPayload.targetLng,
+            targetData: targetValue,
+            root: internalPayload.root,
+          };
+          compareKeys(subPayload);
+        } else {
           errors.push(
-            `📏 Length alert: value of key ${
-              comparePayload.root
-            }.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
+            `❌ Object alert: key ${
+              internalPayload.root
+            }.${srcKey} is object in ${internalPayload.srcLng.toUpperCase()} but not in ${internalPayload.targetLng.toUpperCase()}`
           );
         }
       }
-      if (errors.length > maxErrorCount) {
-        return errors;
+      if (
+        typeof srcValue === "string" &&
+        typeof targetValue === "string" &&
+        srcValue.length < targetValue.length * lengthPercentDifference
+      ) {
+        errors.push(
+          `📏 Length alert: value of key ${
+            internalPayload.root
+          }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
+        );
       }
-    }
-    if (comparator === false) {
+    } else {
       errors.push(
         `❗ Key alert: key ${
-          comparePayload.root
-        }.${srcKey} not found in ${targetLng.toUpperCase()}`
+          internalPayload.root
+        }.${srcKey} not found in ${internalPayload.targetLng.toUpperCase()}`
       );
     }
-    comparator = false;
-    if (counter === srcCount) {
-      comparePayload.root = comparePayload.root.substring(
-        0,
-        comparePayload.root.lastIndexOf(".")
-      );
-    }
-    if (errors.length > maxErrorCount) {
-      return errors;
-    }
+    // for (const targetKey in comparePayload.targetData) {
+    //   // co powoduje, że nawet jak znajdę targetKey, to lecę dalej - trudno debugować, bo długo to trwa
+    //   // może najpierw wyszukać, czy taki targetKey jest w targetData?
+    //   if (srcKey === targetKey) {
+    //     comparator = true;
+    //     srcValue = comparePayload.srcData[srcKey];
+    //     targetValue = comparePayload.targetData[targetKey];
+    //     if (typeof srcValue === "object" && srcValue !== null) {
+    //       if (typeof targetValue === "object" && targetValue !== null) {
+    //         comparePayload.root =
+    //           comparePayload.root === ""
+    //             ? srcKey
+    //             : `${comparePayload.root}.${srcKey}`;
+    //         const subComparePayload: ComparePayload = {
+    //           srcLng: srcLng,
+    //           srcData: srcValue,
+    //           targetLng: targetLng,
+    //           targetData: targetValue,
+    //           root: comparePayload.root,
+    //         };
+    //         compareKeys(subComparePayload);
+    //       } else {
+    //         errors.push(
+    //           `❌ Object alert: key ${
+    //             comparePayload.root
+    //           }.${srcKey} is object in ${srcLng.toUpperCase()} but not in ${targetLng.toUpperCase()}`
+    //         );
+    //       }
+    //     } else if (
+    //       typeof srcValue === "string" &&
+    //       typeof targetValue === "string" &&
+    //       srcValue.length < (targetValue.length * lengthPercentDifference) / 100
+    //     ) {
+    //       errors.push(
+    //         `📏 Length alert: value of key ${
+    //           comparePayload.root
+    //         }.${srcKey} is much shorter in ${srcLng.toUpperCase()} than in ${targetLng.toUpperCase()}`
+    //       );
+    //     }
+    //   }
+    //   if (errors.length > maxErrorCount) {
+    //     return errors;
+    //   }
+    // }
+    // if (comparator === false) {
+    //   errors.push(
+    //     `❗ Key alert: key ${
+    //       comparePayload.root
+    //     }.${srcKey} not found in ${targetLng.toUpperCase()}`
+    //   );
+    // }
+    // comparator = false;
+    // if (counter === srcCount) {
+    //   comparePayload.root = comparePayload.root.substring(
+    //     0,
+    //     comparePayload.root.lastIndexOf(".")
+    //   );
+    // }
+    // if (errors.length > maxErrorCount) {
+    //   return errors;
+    // }
   }
   return errors;
 }
