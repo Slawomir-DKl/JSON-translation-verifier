@@ -2,7 +2,7 @@ import { ComparePayload, Config } from "../interfaces/interfaces";
 import * as fs from "fs";
 import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
-import { checkVariables } from "./check_variables";
+import { getIncorrectVariables } from "./check_variables";
 
 export function checkDifferences(config: Config, errors: string[]): void {
   let srcJsonData: any;
@@ -86,17 +86,26 @@ function compareKeys(
       }
 
       if (typeof srcValue === "string" && typeof targetValue === "string") {
-        checkVariables(srcKey, config.srcLng, srcValue, targetValue, errors);
-        if (
-          srcValue.length <
-          targetValue.length * config.lengthPercentDifference
-        ) {
+        const variableErrors: string[] = getIncorrectVariables(
+          srcValue,
+          targetValue
+        );
+        variableErrors.forEach((variable) => {
           errors.push(
-            `📏 Length alert: value of key ${
-              internalPayload.root
-            }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
+            `❓ Variable alert: key ${srcKey} in ${internalPayload.srcLng} language contains variable ${variable} which is not present in the other language`
           );
-        }
+        });
+      }
+
+      if (
+        srcValue.length <
+        targetValue.length * config.lengthPercentDifference
+      ) {
+        errors.push(
+          `📏 Length alert: value of key ${
+            internalPayload.root
+          }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
+        );
       }
     } else {
       errors.push(
