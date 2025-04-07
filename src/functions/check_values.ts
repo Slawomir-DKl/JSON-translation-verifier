@@ -1,4 +1,7 @@
-import { extractVariables } from "../helpers/check_variables.helper";
+import {
+  countBackslashes,
+  extractVariables,
+} from "../helpers/check_values.helper";
 
 export function getIncorrectVariables(
   srcValue: string,
@@ -12,4 +15,13 @@ export function getIncorrectVariables(
     }
   });
   return variables;
+}
+
+export function areEscapeCharsCorrect(
+  srcValue: string,
+  targetValue: string
+): boolean {
+  return countBackslashes(srcValue) === countBackslashes(targetValue)
+    ? true
+    : false;
 }

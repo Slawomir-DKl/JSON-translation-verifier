@@ -14,3 +14,9 @@ export function extractVariables(inputString: string): string[] {
 
   return matches;
 }
+
+export function countBackslashes(inputString: string): number {
+  const regex = new RegExp("\\\\", "g");
+  const matches = inputString.match(regex);
+  return matches ? matches.length : 0;
+}

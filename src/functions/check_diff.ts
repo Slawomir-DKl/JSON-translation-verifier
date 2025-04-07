@@ -2,7 +2,7 @@ import { ComparePayload, Config } from "../interfaces/interfaces";
 import * as fs from "fs";
 import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
-import { getIncorrectVariables } from "./check_variables";
+import { areEscapeCharsCorrect, getIncorrectVariables } from "./check_values";
 
 export function checkDifferences(config: Config, errors: string[]): void {
   let srcJsonData: any;
@@ -78,7 +78,7 @@ function compareKeys(
           compareKeys(subKeyPayload, config, errors);
         } else {
           errors.push(
-            `❌ Object alert: key ${
+            `2️⃣ Object alert: key ${
               internalPayload.root
             }.${srcKey} is object in ${internalPayload.srcLng.toUpperCase()} but not in ${internalPayload.targetLng.toUpperCase()}`
           );
@@ -92,9 +92,17 @@ function compareKeys(
         );
         variableErrors.forEach((variable) => {
           errors.push(
-            `❓ Variable alert: key ${srcKey} in ${internalPayload.srcLng} language contains variable ${variable} which is not present in the other language`
+            `3️⃣ Variable alert: key ${internalPayload.root}.${srcKey} in ${internalPayload.srcLng} language contains variable ${variable} which is not present in the other language`
           );
         });
+        if (!areEscapeCharsCorrect(srcValue, targetValue)) {
+          const errorMessage = `4️⃣ Escape marks are inconsistent for key ${internalPayload.root}.${srcKey}`;
+          if (!(errorMessage in errors)) {
+            errors.push(errorMessage);
+          }
+          // nie działa
+          // nadal jest 2x
+        }
       }
 
       if (
@@ -102,14 +110,14 @@ function compareKeys(
         targetValue.length * config.lengthPercentDifference
       ) {
         errors.push(
-          `📏 Length alert: value of key ${
+          `6️⃣ Length alert: value of key ${
             internalPayload.root
           }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
         );
       }
     } else {
       errors.push(
-        `❗ Key alert: key ${
+        `1️⃣  Key alert: key ${
           internalPayload.root
         }.${srcKey} not found in ${internalPayload.targetLng.toUpperCase()}`
       );
