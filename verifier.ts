@@ -5,7 +5,7 @@ import { Config } from "./src/interfaces/interfaces";
 let errors = new Set<string>();
 
 const config: Config = {
-  folder: "files_to_check",
+  folder: "sample_files",
   srcLng: "EN",
   targetLng: "PL",
   lengthPercentDifference: 0.7,

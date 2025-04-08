@@ -1,3 +1,3 @@
 # To do in this project:
 
-< EMPTY TODO LIST >
+- error in checking variables
