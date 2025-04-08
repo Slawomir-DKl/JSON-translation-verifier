@@ -7,7 +7,7 @@ import { areEscapeCharsCorrect, getIncorrectVariables } from "./check_values";
 export function checkDifferences(
   config: Config,
   errors: Set<string>
-): Set<string> {
+): void {
   let srcJsonData: any;
   let targetJsonData: any;
   const srcLng = config.srcLng;
@@ -43,20 +43,19 @@ export function checkDifferences(
     root: "",
   };
 
-  errors = compareKeys(comparePayload, config, errors);
-  errors = compareKeys(revertPayload(comparePayload), config, errors);
+  compareKeys(comparePayload, config, errors);
+  compareKeys(revertPayload(comparePayload), config, errors);
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
-  errors = checkOrder(srcLines, targetLines, errors);
-  return errors;
+  checkOrder(srcLines, targetLines, errors);
 }
 
 function compareKeys(
   internalPayload: ComparePayload,
   config: Config,
   errors: Set<string>
-): Set<string> {
+): void {
   let srcValue: any;
   let targetValue: any;
   let counter = 0;
@@ -78,7 +77,7 @@ function compareKeys(
             targetData: targetValue,
             root: root,
           };
-          errors = compareKeys(subKeyPayload, config, errors);
+          compareKeys(subKeyPayload, config, errors);
         } else {
 
           errors.add(
@@ -124,5 +123,4 @@ function compareKeys(
       );
     }
   }
-  return errors;
 }

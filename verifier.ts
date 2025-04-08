@@ -12,5 +12,5 @@ const config: Config = {
   maxErrorCount: 50,
 };
 
-errors = checkDifferences(config, errors);
+checkDifferences(config, errors);
 printResults(config.maxErrorCount, errors);

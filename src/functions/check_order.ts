@@ -2,7 +2,7 @@ export function checkOrder(
   srcLines: string[],
   targetLines: string[],
   errors: Set<string>
-): Set<string> {
+): void {
   for (let lineCnt = 0; lineCnt < srcLines.length; lineCnt++) {
     const srcLine: string = srcLines[lineCnt];
     if (srcLine.indexOf('"') > -1) {
@@ -22,5 +22,4 @@ export function checkOrder(
       }
     }
   }
-  return errors;
 }
