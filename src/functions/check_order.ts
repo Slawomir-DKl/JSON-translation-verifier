@@ -17,7 +17,7 @@ export function checkOrder(
           .toString()
           .padStart(maxLineCntLength, "0");
         errors.add(
-          `5️⃣ Order alert: keys in line ${lineNumber} - source: ${srcKey}, target: ${targetKey}`
+          `5️⃣  Order alert: keys in line ${lineNumber} - source: ${srcKey}, target: ${targetKey}`
         );
       }
     }

@@ -1,4 +1,4 @@
-import { ComparePayload, Config } from "../interfaces/interfaces";
+import { ComparePayload, Config, JSONArray } from "../interfaces/interfaces";
 import * as fs from "fs";
 import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
@@ -8,8 +8,8 @@ export function checkDifferences(
   config: Config,
   errors: Set<string>
 ): void {
-  let srcJsonData: any;
-  let targetJsonData: any;
+  let srcJsonData: JSONArray;
+  let targetJsonData: JSONArray;
   const srcLng = config.srcLng;
   const targetLng = config.targetLng;
   const folder = config.folder;
@@ -56,8 +56,8 @@ function compareKeys(
   config: Config,
   errors: Set<string>
 ): void {
-  let srcValue: any;
-  let targetValue: any;
+  let srcValue: JSONArray;
+  let targetValue: JSONArray;
   let counter = 0;
   for (const srcKey in internalPayload.srcData) {
     counter++;
@@ -81,7 +81,7 @@ function compareKeys(
         } else {
 
           errors.add(
-            `2️⃣ Object alert: key ${
+            `2️⃣  Object alert: key ${
               internalPayload.root
             }.${srcKey} is object in ${internalPayload.srcLng.toUpperCase()} but not in ${internalPayload.targetLng.toUpperCase()}`
           );
@@ -95,12 +95,12 @@ function compareKeys(
         );
         variableErrors.forEach((variable) => {
           errors.add(
-            `3️⃣ Variable alert: key ${internalPayload.root}.${srcKey} in ${internalPayload.srcLng} language contains variable ${variable} which is not present in the other language`
+            `3️⃣  Variable alert: key ${internalPayload.root}.${srcKey} in ${internalPayload.srcLng} language contains variable ${variable} which is not present in the other language`
           );
         });
         if (!areEscapeCharsCorrect(srcValue, targetValue)) {
           errors.add(
-            `4️⃣ Escape marks are inconsistent for key ${internalPayload.root}.${srcKey}`
+            `4️⃣  Escape marks are inconsistent for key ${internalPayload.root}.${srcKey}`
           );
         }
       }
@@ -110,7 +110,7 @@ function compareKeys(
         targetValue.length * config.lengthPercentDifference
       ) {
         errors.add(
-          `6️⃣ Length alert: value of key ${
+          `6️⃣  Length alert: value of key ${
             internalPayload.root
           }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
         );
