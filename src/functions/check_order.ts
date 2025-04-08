@@ -1,8 +1,8 @@
 export function checkOrder(
   srcLines: string[],
   targetLines: string[],
-  errors: string[]
-): string[] {
+  errors: Set<string>
+): Set<string> {
   for (let lineCnt = 0; lineCnt < srcLines.length; lineCnt++) {
     const srcLine: string = srcLines[lineCnt];
     if (srcLine.indexOf('"') > -1) {
@@ -16,7 +16,7 @@ export function checkOrder(
         const lineNumber: string = (lineCnt + 1)
           .toString()
           .padStart(maxLineCntLength, "0");
-        errors.push(
+        errors.add(
           `5️⃣ Order alert: keys in line ${lineNumber} - source: ${srcKey}, target: ${targetKey}`
         );
       }

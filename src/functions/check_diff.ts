@@ -4,7 +4,10 @@ import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
 import { areEscapeCharsCorrect, getIncorrectVariables } from "./check_values";
 
-export function checkDifferences(config: Config, errors: string[]): void {
+export function checkDifferences(
+  config: Config,
+  errors: Set<string>
+): Set<string> {
   let srcJsonData: any;
   let targetJsonData: any;
   const srcLng = config.srcLng;
@@ -40,23 +43,23 @@ export function checkDifferences(config: Config, errors: string[]): void {
     root: "",
   };
 
-  compareKeys(comparePayload, config, errors);
-  compareKeys(revertPayload(comparePayload), config, errors);
+  errors = compareKeys(comparePayload, config, errors);
+  errors = compareKeys(revertPayload(comparePayload), config, errors);
 
   const srcLines = srcJsonString.split("\n");
   const targetLines = targetJsonString.split("\n");
-  checkOrder(srcLines, targetLines, errors);
+  errors = checkOrder(srcLines, targetLines, errors);
+  return errors;
 }
 
 function compareKeys(
   internalPayload: ComparePayload,
   config: Config,
-  errors: string[]
-): string[] {
+  errors: Set<string>
+): Set<string> {
   let srcValue: any;
   let targetValue: any;
   let counter = 0;
-
   for (const srcKey in internalPayload.srcData) {
     counter++;
     if (srcKey in internalPayload.targetData) {
@@ -75,9 +78,10 @@ function compareKeys(
             targetData: targetValue,
             root: root,
           };
-          compareKeys(subKeyPayload, config, errors);
+          errors = compareKeys(subKeyPayload, config, errors);
         } else {
-          errors.push(
+
+          errors.add(
             `2️⃣ Object alert: key ${
               internalPayload.root
             }.${srcKey} is object in ${internalPayload.srcLng.toUpperCase()} but not in ${internalPayload.targetLng.toUpperCase()}`
@@ -91,12 +95,12 @@ function compareKeys(
           targetValue
         );
         variableErrors.forEach((variable) => {
-          errors.push(
+          errors.add(
             `3️⃣ Variable alert: key ${internalPayload.root}.${srcKey} in ${internalPayload.srcLng} language contains variable ${variable} which is not present in the other language`
           );
         });
         if (!areEscapeCharsCorrect(srcValue, targetValue)) {
-          errors.push(
+          errors.add(
             `4️⃣ Escape marks are inconsistent for key ${internalPayload.root}.${srcKey}`
           );
         }
@@ -106,14 +110,14 @@ function compareKeys(
         srcValue.length <
         targetValue.length * config.lengthPercentDifference
       ) {
-        errors.push(
+        errors.add(
           `6️⃣ Length alert: value of key ${
             internalPayload.root
           }.${srcKey} is much shorter in ${internalPayload.srcLng.toUpperCase()} than in ${internalPayload.targetLng.toUpperCase()}`
         );
       }
     } else {
-      errors.push(
+      errors.add(
         `1️⃣  Key alert: key ${
           internalPayload.root
         }.${srcKey} not found in ${internalPayload.targetLng.toUpperCase()}`

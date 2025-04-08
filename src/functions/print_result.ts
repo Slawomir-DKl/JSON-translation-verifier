@@ -1,21 +1,20 @@
-export function printResults(maxErrorCount: number, errors: string[]) {
-  if (errors.length === 1) {
-    console.log(`There is ${errors.length} error in JSON files`);
-  } else if (errors.length > maxErrorCount) {
+export function printResults(maxErrorCount: number, errors: Set<string>) {
+  if (errors.size === 1) {
+    console.log(`There is ${errors.size} error in JSON files`);
+  } else if (errors.size > maxErrorCount) {
     console.log(
       `There is more than ${maxErrorCount} errors in JSON files. Correct them and run the program again.`
     );
-  } else if (errors.length > 1) {
-    console.log(`There are ${errors.length} errors in JSON files`);
+  } else if (errors.size > 1) {
+    console.log(`There are ${errors.size} errors in JSON files`);
   } else {
     console.log("No errors found");
   }
 
-  errors.sort();
-  const maxErrors =
-    errors.length > maxErrorCount ? maxErrorCount : errors.length;
+  const errorList = Array.from(errors).sort();
+  const maxErrors = errorList.length > maxErrorCount ? maxErrorCount : errorList.length;
 
   for (let index = 0; index < maxErrors; index++) {
-    console.log(errors[index]);
+    console.log(errorList[index]);
   }
 }
