@@ -1,7 +1,4 @@
-import {
-  countBackslashes,
-  extractVariables,
-} from "../helpers/check_values.helper";
+import { countQuotes, extractVariables } from "../helpers/check_values.helper";
 
 export function getIncorrectVariables(
   srcValue: string,
@@ -21,7 +18,5 @@ export function areEscapeCharsCorrect(
   srcValue: string,
   targetValue: string
 ): boolean {
-  return countBackslashes(srcValue) === countBackslashes(targetValue)
-    ? true
-    : false;
+  return countQuotes(srcValue) === countQuotes(targetValue) ? true : false;
 }

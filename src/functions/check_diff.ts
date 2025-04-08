@@ -96,12 +96,9 @@ function compareKeys(
           );
         });
         if (!areEscapeCharsCorrect(srcValue, targetValue)) {
-          const errorMessage = `4️⃣ Escape marks are inconsistent for key ${internalPayload.root}.${srcKey}`;
-          if (!(errorMessage in errors)) {
-            errors.push(errorMessage);
-          }
-          // nie działa
-          // nadal jest 2x
+          errors.push(
+            `4️⃣ Escape marks are inconsistent for key ${internalPayload.root}.${srcKey}`
+          );
         }
       }
 

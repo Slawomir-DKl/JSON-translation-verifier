@@ -1,4 +1,4 @@
 # To do in this project:
 
-- Check if escape characters are properly transferred to translation
+- Change errors list to set (to avoid duplicates)
 - Add typing/verification to JSON.parse()
