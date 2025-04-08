@@ -7,5 +7,9 @@
   "SECTION_2": {
     "FEATURE_4": "Original text for feature 4",
     "FEATURE_5": "Original text for feature 5"
+  },
+  "SECTION_3": {
+    "FEATURE_4": "Original text for feature 6",
+    "FEATURE_5": "Original text for feature 7"
   }
 }
