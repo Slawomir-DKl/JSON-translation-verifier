@@ -12,11 +12,11 @@ export function checkDifferences(config: Config, errors: Set<string>): void {
   const folder = config.folder;
   let comparePayload: ComparePayload;
   const srcJsonString: string = fs.readFileSync(
-    `./${folder}/${srcLng}.json`,
+    `./${folder}/${srcLng}${config.version}.json`,
     "utf-8"
   );
   const targetJsonString: string = fs.readFileSync(
-    `./${folder}/${targetLng}.json`,
+    `./${folder}/${targetLng}${config.version}.json`,
     "utf-8"
   );
   try {

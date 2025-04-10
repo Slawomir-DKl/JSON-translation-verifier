@@ -1,3 +1,5 @@
 # To do in this project:
 
-< EMPTY TODO LIST >
+- Check placeholders in [] (should not be translated)
+
+<!-- < EMPTY TODO LIST > -->
