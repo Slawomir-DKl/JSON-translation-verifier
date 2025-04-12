@@ -2,7 +2,12 @@ import { ComparePayload, Config, JSONArray } from "../interfaces/interfaces";
 import * as fs from "fs";
 import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
-import { areEscapeCharsCorrect, getIncorrectVariables, isTranslated } from "./check_values";
+import {
+  areEscapeCharsCorrect,
+  getIncorrectVariables,
+  getTranslatedPlaceholders,
+  isValueTranslated,
+} from "./check_values";
 
 export function checkDifferences(config: Config, errors: Set<string>): void {
   let srcJsonData: JSONArray;
@@ -99,11 +104,20 @@ function compareKeys(
             `4️⃣  Escape marks are inconsistent for key ${internalPayload.root}${srcKey}`
           );
         }
-        if (!isTranslated(srcValue, targetValue)) {
+        if (!isValueTranslated(srcValue, targetValue)) {
           errors.add(
             `4️⃣  Value for key ${internalPayload.root}${srcKey} is not translated`
           );
         }
+        const placeholderErrors: string[] = getTranslatedPlaceholders(
+          srcValue,
+          targetValue
+        );
+        placeholderErrors.forEach((placeholder) => {
+          errors.add(
+            `3️⃣  Placeholder alert: key ${internalPayload.root}${srcKey} in ${internalPayload.srcLng} language contains placeholder ${placeholder} which is not present in the other language`
+          );
+        });
       }
 
       if (
