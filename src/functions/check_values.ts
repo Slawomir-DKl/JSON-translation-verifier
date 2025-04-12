@@ -20,3 +20,7 @@ export function areEscapeCharsCorrect(
 ): boolean {
   return countQuotes(srcValue) === countQuotes(targetValue) ? true : false;
 }
+
+export function isTranslated(srcValue: string, targetValue: string): boolean {
+  return srcValue === targetValue ? false : true;
+}

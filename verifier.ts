@@ -8,7 +8,7 @@ const config: Config = {
   folder: "sample_files",
   srcLng: "EN",
   targetLng: "PL",
-  version: "", // empty if en.json; version will be added without any chars
+  version: "", // empty string if `en.json`; version will be added without any chars
   lengthPercentDifference: 0.7,
   maxErrorCount: 50,
 };
