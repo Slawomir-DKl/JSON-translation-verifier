@@ -18,6 +18,7 @@ export interface Config {
   folder: string;
   srcLng: string;
   targetLng: string;
+  version: string;
   lengthPercentDifference: number;
   maxErrorCount: number;
 }

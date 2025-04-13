@@ -1,12 +1,16 @@
 {
   "SECTION_1": {
-    "FEATURE_1": "Tłumaczenie tekstu dla funkcji 1",
-    "FEATURE_2": "Tłumaczenie \"tekstu\" dla funkcji 2",
-    "FEATURE_3": "Tłumaczenie {{tekstu}} dla funkcji 3"
+    "FEATURE_1": "Original text for feature 1",
+    "FEATURE_2": "Tłumaczenie \"tekstu\" dla [funkcji] 2",
+    "FEATURE_3": "Tłumaczenie {{tekstu}} dla [feature] 3"
   },
   "SECTION_2": {
     "FEATURE_4": "Tłumaczenie tekstu dla funkcji 4 is definitely too long. Tłumaczenie tekstu dla funkcji 4 is definitely too long."
   },
   "FEATURE_5": "Tłumaczenie tekstu dla funkcji 5",
-  "SECTION_3": "Tłumaczenie tekstu dla funkcji 6"
+  "SECTION_3": "Tłumaczenie tekstu dla funkcji 6",
+  "SECTION_4": {
+    "FEATURE_4": "Tłumaczenie tekstu dla funkcji 6",
+    "FEATURE_5": "Tłumaczenie tekstu <br> dla funkcji 7"
+  }
 }
