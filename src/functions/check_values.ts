@@ -1,5 +1,5 @@
 import {
-  countQuotes,
+  countChars,
   extractElements,
   getNoncompliantResults,
 } from "../helpers/check_values.helper";
@@ -8,7 +8,9 @@ export function areEscapeCharsCorrect(
   srcValue: string,
   targetValue: string
 ): boolean {
-  return countQuotes(srcValue) === countQuotes(targetValue) ? true : false;
+  return countChars('"', srcValue) === countChars('"', targetValue)
+    ? true
+    : false;
 }
 
 export function getIncorrectVariables(
@@ -32,4 +34,11 @@ export function isValueTranslated(
   targetValue: string
 ): boolean {
   return srcValue === targetValue ? false : true;
+}
+
+export function areGtLtCorrect(srcValue: string, targetValue: string): boolean {
+  return countChars("<", srcValue) === countChars("<", targetValue) &&
+    countChars(">", srcValue) === countChars(">", targetValue)
+    ? true
+    : false;
 }

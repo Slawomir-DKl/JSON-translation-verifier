@@ -39,8 +39,8 @@ export function extractElements(
   return matches;
 }
 
-export function countQuotes(inputString: string): number {
-  const regex = new RegExp('"', "g");
+export function countChars(charToCount: string, inputString: string): number {
+  const regex = new RegExp(charToCount, "g");
   const matches = inputString.match(regex);
   return matches ? matches.length : 0;
 }

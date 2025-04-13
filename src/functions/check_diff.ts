@@ -4,6 +4,7 @@ import { checkOrder } from "./check_order";
 import { revertPayload } from "../helpers/check_diff.helper";
 import {
   areEscapeCharsCorrect,
+  areGtLtCorrect,
   getIncorrectVariables,
   getTranslatedPlaceholders,
   isValueTranslated,
@@ -102,6 +103,11 @@ function compareKeys(
         if (!areEscapeCharsCorrect(srcValue, targetValue)) {
           errors.add(
             `4️⃣  Escape marks are inconsistent for key ${internalPayload.root}${srcKey}`
+          );
+        }
+        if (!areGtLtCorrect(srcValue, targetValue)) {
+          errors.add(
+            `4️⃣  HTML characters (<, >) are inconsistent for key ${internalPayload.root}${srcKey}`
           );
         }
         if (!isValueTranslated(srcValue, targetValue)) {
